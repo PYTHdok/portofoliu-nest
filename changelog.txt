@@ -1,0 +1,17 @@
+12.08.2025 
+NestJS
+- Installed SQLite npm install @nestjs/typeorm typeorm sqlite3
+- Created the src/database/database.module.ts file
+- Added DatabaseModule to app.module.ts
+- Defined the lucrare.entity.ts entity
+- Made some updates to the service, turned all functions to async functions
+- Added TypeOrmModule to the module
+- Updated the controller
+- Configured the server in main.ts
+- Added the @Delete('image/:filename') endpoint to the controller
+- Created src/services/api.js
+React
+- Imported getLucrari, createLucrare, updateLucrare, deleteLucrare, deleteImage from /services/api
+- Changed handleSubmit, handleImageChange functions
+- Solved errors in the Works.jsx component
+
