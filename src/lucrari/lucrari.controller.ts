@@ -54,25 +54,41 @@ export class LucrariController {
 
 
     @Patch(':id')
-    @UseInterceptors(FileInterceptor('image'))
+    @UseInterceptors(FileInterceptor('image', {
+      storage: diskStorage({
+        destination: './uploads',
+        filename: (req, file, cb) => {
+          const randomName = Array(32)
+            .fill(null)
+            .map(() => Math.round(Math.random() * 16).toString(16))
+            .join('');
+          cb(null, `${randomName}${extname(file.originalname)}`);
+        },
+      }),
+    }))
     async update(
       @Param('id', ParseIntPipe) id: number,
       @Body() updateLucrareDto: UpdateLucrareDto,
       @UploadedFile() file?: Express.Multer.File
     ) {
-      console.log('Date primite:', {
-        id,
-        updateLucrareDto,
-        file: file?.filename
-      });
+      console.log('Fișier primit:', file?.filename);
 
       if (file) {
+        // Șterge vechea imagine dacă există
+        const oldLucrare = await this.lucrariService.findOne(id);
+        if (oldLucrare.imagePath) {
+          try {
+            unlinkSync(join(__dirname, '..', '..', oldLucrare.imagePath));
+          } catch (err) {
+            console.error('Eroare la ștergerea imaginii vechi:', err);
+          }
+        }
         updateLucrareDto.imagePath = `/uploads/${file.filename}`;
       }
 
       return this.lucrariService.update(id, updateLucrareDto);
     }
-
+    
     @Delete(':id') // DELETE /lucrari/:id
     remove(@Param('id', ParseIntPipe) id: number) {
         return this.lucrariService.remove(id)
@@ -87,6 +103,11 @@ export class LucrariController {
       } catch (error) {
         throw new BadRequestException('Ștergerea imaginii a eșuat');
       }
+    }
+
+    @Get('sterge-invalide')
+    async stergeInvalide() {
+      return this.lucrariService.stergeInregistrariInvalide();
     }
 }
 

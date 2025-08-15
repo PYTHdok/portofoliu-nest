@@ -4,6 +4,8 @@ import { Repository } from 'typeorm';
 import { Lucrare } from './lucrare.entity';
 import { CreateLucrareDto } from './dto/create-lucrari.dto';
 import { UpdateLucrareDto } from './dto/update-lucrare.dto';
+import { join } from 'path';
+import { existsSync, unlinkSync } from 'fs';
 
 @Injectable()
 export class LucrariService {
@@ -108,4 +110,23 @@ export class LucrariService {
         throw new NotFoundException(`Lucrarea #${id} nu există`);
       }
     }
+
+    async stergeInregistrariInvalide() {
+    const toateLucrarile = await this.lucrariRepository.find();
+    const lucrariInvalide: number[] = [];
+
+    for (const lucrare of toateLucrarile) {
+      const caleFisier = join(__dirname, '..', '..', lucrare.imagePath); // ajusteaza calea
+      if (!existsSync(caleFisier)) {
+        lucrariInvalide.push(lucrare.id);
+      }
+    }
+
+    if (lucrariInvalide.length > 0) {
+      await this.lucrariRepository.delete(lucrariInvalide);
+      return `Șterse ${lucrariInvalide.length} înregistrări invalide.`;
+    } else {
+      return 'Nu există înregistrări invalide.';
+    }
+  }
 }
